@@ -32,6 +32,17 @@ CarrierWave.configure do |config|
 end
 ```
 
+To configure retry parameters in case of azure failure:
+
+```ruby
+CarrierWave.configure do |config|
+  # ...
+  config.retry_count = 'RETRY COUNT' # optional - Set the retry count. Default is 3
+  config.retry_interval = 'RETRY INTERVAL' #optional - Set the interval between retry in seconds. Default is 30 seconds
+  # ...
+end
+```
+
 And then in your uploader, set the storage to `:azure_rm`
 
 ```ruby

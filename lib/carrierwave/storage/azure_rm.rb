@@ -18,7 +18,9 @@ module CarrierWave
           %i(storage_account_name storage_access_key storage_blob_host).each do |key|
             ::Azure::Storage.send("#{key}=", uploader.send("azure_#{key}"))
           end
-          ::Azure::Storage::Blob::BlobService.new
+          service = ::Azure::Storage::Blob::BlobService.new
+          service.with_filter(::Azure::Storage::Core::Filter::LinearRetryPolicyFilter.new(@uploader.retry_count, @uploader.retry_interval))
+          service
         end
       end
 
