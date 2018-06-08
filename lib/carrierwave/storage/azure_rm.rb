@@ -33,6 +33,8 @@ module CarrierWave
       class File
         attr_reader :path
 
+        @@container_acls = Hash.new
+
         def initialize(uploader, connection, path, signer = nil)
           @uploader = uploader
           @connection = connection
@@ -48,8 +50,14 @@ module CarrierWave
 
         def access_level
           unless @public_access_level
-            container, signed_identifiers = @connection.get_container_acl(@uploader.send("azure_container"))
-            @public_access_level = container.public_access_level || 'private' # when container access level is private, it returns nil
+            acl_key = [@connection.account_name, @uploader.send("azure_container")].join("_")
+            if @@container_acls.key?(acl_key) && %w(private blob container).include?(@@container_acls[acl_key])
+              @public_access_level = @@container_acls[acl_key]
+            else
+              container, signed_identifiers = @connection.get_container_acl(@uploader.send("azure_container"))
+              @public_access_level = container.public_access_level || 'private' # when container access level is private, it returns nil
+              @@container_acls[acl_key] = @public_access_level
+            end
           end
           @public_access_level
         end
